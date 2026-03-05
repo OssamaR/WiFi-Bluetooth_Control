@@ -3,6 +3,16 @@
 
 int main(int argc, char ** argv)
 {
+    initscr();
+    cbreak();
+    // raw();
+    noecho();
+    keypad(stdscr, TRUE);
+    curs_set(0);
+
+    start_color();
+    init_pair(1, COLOR_GREEN, COLOR_BLACK);   // pair 1 = green text, black background
+    init_pair(2, COLOR_RED, COLOR_BLACK);
     while(1)
     {
         state_machine();

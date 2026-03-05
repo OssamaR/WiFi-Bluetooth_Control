@@ -1,11 +1,6 @@
 #include "state_machine.hpp"
 
-enum class state{
-    HOME_PAGE,
-    WIFI_MAIN,
-    BLUETOOTH_MAIN,
-    EXIT
-};
+
 
 state machine = state::HOME_PAGE ;
 
@@ -15,11 +10,7 @@ state machine = state::HOME_PAGE ;
     exit
 };
 
-void print_centered(WINDOW *win, int row, int w, const char *text) {
-    int x = (w - (int)strlen(text)) / 2;
-    if (x < 1) x = 1; // prevent overflow into border
-    mvwprintw(win, row, x, text);
-}
+
 
 /*
 Main state machine code
@@ -34,6 +25,13 @@ void state_machine(void)
 
     case state::WIFI_MAIN:
         wifi_main();
+        break;
+
+    case state::WIFI_CONNECT_TO_A_NETWORK:
+        connect_to_a_network();
+        break;
+    case state::WIFI_DISPLAY_STATUS:
+        display_wifi_status();
         break;
 
     case state::BLUETOOTH_MAIN:
@@ -54,13 +52,7 @@ void home_page(void)
 {
     static selection select = selection::wifi;
     // initialize the screen, sets up memory and clears screen
-    initscr();
-    cbreak();
-    // raw();
-    noecho();
-    keypad(stdscr, TRUE);
-    // printw("Hello World!");
-
+    
     int h, w, line_start, space_start;
     h=7;
     w=80;
@@ -125,7 +117,7 @@ void home_page(void)
     wrefresh(bluetooth_win);
     wrefresh(wifi_win);
     
-    curs_set(0);
+    
 
     switch(select){
         case selection::wifi:
@@ -230,7 +222,7 @@ void home_page(void)
                 break;
             }
         }
-        else if( key_pressed== '\n')
+        else if (key_pressed == '\n' || key_pressed == KEY_ENTER || key_pressed == '\r')
         {
             // go to page depending on the selection enum
             switch (select)
@@ -262,27 +254,6 @@ void home_page(void)
     werase(wifi_win);
     werase(bluetooth_win);
     werase(exit_win);
-}
-
-void wifi_main(void)
-{
-    int h, w, line_start, space_start;
-    h=7*4-3;
-    w=80;
-    line_start =0;
-    space_start =0;
- 
-    static WINDOW * wifi_home = newwin(5,   w, line_start, space_start);
-    static WINDOW * wifi_menu = newwin(h-4, w, 4, space_start);
-    refresh();
-
-    box(wifi_home, 0, 0);
-    wborder(wifi_menu,0,0,0,0,'+','+',0,0); 
-
-    wrefresh(wifi_home);
-    wrefresh(wifi_menu);
-
-    getch();
 }
 
 void bluetooth_main(void)

@@ -3,12 +3,23 @@
 
 #include <ncurses.h>
 #include <string.h>
+#include <string>
 #include <cstdlib>
 
-void print_centered(WINDOW *win, int row, int w, const char *text);
+#include <iostream>
+#include <cstdio>
+#include <memory>
+
+#include "wifi_page.hpp"
+#include "shared.hpp"
+
+
+
+// std::string cmd_output(const char* cmd);
+
 void state_machine(void);
 void home_page(void);
-void wifi_main(void);
+// void wifi_main(void);
 void bluetooth_main(void);
 void exit_state(void);
 
