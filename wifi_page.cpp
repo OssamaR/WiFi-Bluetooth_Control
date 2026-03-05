@@ -225,6 +225,7 @@ void wifi_main(void)
 
     while(1)
     {
+        
         key=getch();
 
          if(key == KEY_UP )
@@ -284,9 +285,17 @@ void wifi_main(void)
                 case 3:
                     machine = state::WIFI_CONNECT_TO_A_NETWORK;
                 break;
+
+                case 4:
+                    machine = state::WIFI_REMOVE_A_NETWORK;
+                break;
+
+                case 7:
+                    machine = state::HOME_PAGE;
+                break;
                
             }
-            if(i==3 || i==0) break;            
+            if( i !=1 && i!=2) break;            
         }
 
         wrefresh(wifi_home);
@@ -308,23 +317,13 @@ void connect_to_a_network(void)
     line_start =0;
     space_start =0;
     int key;
-    // static WINDOW * wifi_home = newwin(5,   w, line_start, space_start);
-    // static WINDOW * wifi_status = newwin(3, w, line_start+4, space_start);
     static WINDOW * wifi_menu = newwin(h-6, w, 6, space_start);
 
-    // refresh();
-
-    // box(wifi_home, 0, 0);
-    // wborder(wifi_status,0,0,0,0,'+','+','+','+'); 
     wborder(wifi_menu,0,0,0,0,'+','+',0,0); 
 
-    // wattron(wifi_home,A_BOLD);
-    // print_centered(wifi_home, 2, w, "WiFi Control");
-    // wattroff(wifi_home,A_BOLD);
-
-    // wrefresh(wifi_home);
+   
     wrefresh(wifi_menu);
-    // wrefresh(wifi_status);
+    
 
     
 
@@ -341,7 +340,6 @@ void connect_to_a_network(void)
 
     mvwprintw(wifi_menu,2,1,"Password: ");
     wrefresh(wifi_menu);
-    // wrefresh(wifi_home);
 
     char pswd_buf[64] = {0};
     wgetstr(wifi_menu, pswd_buf);       // reads input, Enter to confirm
@@ -352,6 +350,7 @@ void connect_to_a_network(void)
     int ret = system(cmd.c_str());
     refresh();
     curs_set(0);
+    noecho();
     if(ret == 0)
     {
         wattron(wifi_menu, COLOR_PAIR(1));
@@ -375,7 +374,7 @@ void connect_to_a_network(void)
 
 void display_wifi_status(void)
 {
-        int h, w, line_start, space_start;
+    int h, w, line_start, space_start;
     h=7*4-3;
     w=80;
     line_start =0;
@@ -412,4 +411,64 @@ void display_wifi_status(void)
     machine = state::WIFI_MAIN;
     wclear(wifi_menu);
     wrefresh(wifi_menu);
+}
+
+void remove_network(void)
+{
+    int h, w, line_start, space_start;
+    h=7*4-3;
+    w=80;
+    line_start =0;
+    space_start =0;
+    int key;
+    static WINDOW * wifi_menu = newwin(h-6, w, 6, space_start);
+
+    wborder(wifi_menu,0,0,0,0,'+','+',0,0); 
+
+   
+    wrefresh(wifi_menu);
+    
+
+    
+
+    mvwprintw(wifi_menu,1,1,"Network Name that you want to remove: ");
+    wrefresh(wifi_menu);
+
+    wmove(wifi_menu,2,1);
+    wrefresh(wifi_menu);
+    
+    echo();
+    curs_set(1);
+    
+    
+    char ssid_buf[64] = {0};
+    wgetstr(wifi_menu, ssid_buf);       // reads input, Enter to confirm
+    std::string ssid(ssid_buf);
+
+       // Connect
+    std::string cmd = "nmcli connection delete \"" + ssid + "\" > /dev/null 2>&1";
+    int ret = system(cmd.c_str());
+
+    refresh();
+    curs_set(0);
+    noecho();
+    if(ret == 0)
+    {
+        wattron(wifi_menu, COLOR_PAIR(1));
+        mvwprintw(wifi_menu, 4, 1, "Network removed successfully!");
+        wattroff(wifi_menu, COLOR_PAIR(1));
+    }
+    else
+    {
+        wattron(wifi_menu, COLOR_PAIR(2));
+        mvwprintw(wifi_menu, 4, 1, "Could not find the Network.");
+        wattroff(wifi_menu, COLOR_PAIR(2));
+    }
+
+    wrefresh(wifi_menu);
+    getch();
+    machine = state::WIFI_MAIN;
+
+    werase(wifi_menu);
+        
 }

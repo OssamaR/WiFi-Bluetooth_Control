@@ -19,5 +19,6 @@ std::string cmd_output(const char* cmd);
 void wifi_main(void);
 void connect_to_a_network(void);
 void display_wifi_status(void);
+void remove_network(void);
 
 #endif

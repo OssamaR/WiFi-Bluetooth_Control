@@ -34,6 +34,10 @@ void state_machine(void)
         display_wifi_status();
         break;
 
+    case state::WIFI_REMOVE_A_NETWORK:
+        remove_network();
+        break;
+
     case state::BLUETOOTH_MAIN:
         bluetooth_main();
         break;
