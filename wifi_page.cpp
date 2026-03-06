@@ -155,17 +155,19 @@ void wifi_main(void)
         "[ Search for a Network ]",
         "[ Back to main menu ]"
     };
-    
-    
-    // if()
-    // refresh();
+
+    std::vector<std::string> menu_OFF_items = {
+        "[ Turn WiFi ON ]",
+        "[ Back to main menu ]"
+    };
 
     box(wifi_home, 0, 0);
     wborder(wifi_status,0,0,0,0,'+','+','+','+'); 
     wborder(wifi_menu,0,0,0,0,'+','+',0,0); 
 
     
-    int i=0;
+    int index_ON=0;
+    int index_OFF=0;
     refresh();
     
     wattron(wifi_home,A_BOLD);
@@ -212,6 +214,11 @@ void wifi_main(void)
         wattron(wifi_status,COLOR_PAIR(2));
         mvwprintw(wifi_status, 1, 10, "OFF");
         wattroff(wifi_status,COLOR_PAIR(2));
+
+        wattron(wifi_menu, A_REVERSE);
+        mvwprintw(wifi_menu, 1, 1, "[ Turn WiFi ON ]");
+        wattroff(wifi_menu, A_REVERSE);
+        mvwprintw(wifi_menu, 2, 1, "[ Back to main menu ]");
     }
   
 
@@ -226,82 +233,181 @@ void wifi_main(void)
     while(1)
     {
         
-        key=getch();
+        // key=getch();
 
-         if(key == KEY_UP )
+
+        if(cmd_output("nmcli radio wifi") == "enabled")
         {
-            if(i==0)
+            werase(wifi_status);
+            werase(wifi_menu);
+            wborder(wifi_status,0,0,0,0,'+','+','+','+'); 
+            wborder(wifi_menu,0,0,0,0,'+','+',0,0); 
+            mvwprintw(wifi_status, 1, 2, "Status:");
+
+            mvwprintw(wifi_menu, 1, 1, "[ Display WiFi Status ]");
+            mvwprintw(wifi_menu, 2, 1, "[ Turn WiFi ON ]");
+            mvwprintw(wifi_menu, 3, 1, "[ Turn WiFi OFF ]");
+            mvwprintw(wifi_menu, 4, 1, "[ Connect to WiFi Network ]");
+            mvwprintw(wifi_menu, 5, 1, "[ Remove a Saved Network ]");
+            mvwprintw(wifi_menu, 6, 1, "[ Modify a Saved Network ]");
+            mvwprintw(wifi_menu, 7, 1, "[ Search for a Network ]");
+            mvwprintw(wifi_menu, 8, 1, "[ Back to main menu ]");
+
+            wattron(wifi_status,COLOR_PAIR(1));
+            mvwprintw(wifi_status, 1, 10, "ON");
+            wattroff(wifi_status,COLOR_PAIR(1));
+
+            std::string result = cmd_output("nmcli -t -f ACTIVE,SSID dev wifi | grep '^yes' ");
+            if(result[0]=='y')
             {
-                mvwprintw(wifi_menu, i+1, 1, "%s" ,menu_items[i].c_str());
-                i=7;
-                wattron(wifi_menu,A_REVERSE);
-                mvwprintw(wifi_menu, i+1, 1, "%s" ,menu_items[i].c_str());
-                wattroff(wifi_menu,A_REVERSE);
+                mvwprintw(wifi_status, 1, 13, "|| Connected to:");
+                result = result.substr( result.find(':')+1);
+                mvwprintw(wifi_status, 1, 30, "%s", result.c_str());
             }
             else
             {
-                mvwprintw(wifi_menu, i+1, 1, "%s" ,menu_items[i].c_str());
-                i--;
-                wattron(wifi_menu,A_REVERSE);
-                mvwprintw(wifi_menu, i+1, 1, "%s" ,menu_items[i].c_str());
-                wattroff(wifi_menu,A_REVERSE);
+                mvwprintw(wifi_status, 1, 14, "| No Network Connection");
             }
-        }
-        else if(key == KEY_DOWN)
-        {
-            if(i==7)
-            {
-                mvwprintw(wifi_menu, i+1, 1, "%s" ,menu_items[i].c_str());
-                i=0;
-                wattron(wifi_menu,A_REVERSE);
-                mvwprintw(wifi_menu, i+1, 1, "%s" ,menu_items[i].c_str());
-                wattroff(wifi_menu,A_REVERSE);
-            }
-            else
-            {
-                mvwprintw(wifi_menu, i+1, 1, "%s" ,menu_items[i].c_str());
-                i++;
-                wattron(wifi_menu,A_REVERSE);
-                mvwprintw(wifi_menu, i+1, 1, "%s" ,menu_items[i].c_str());
-                wattroff(wifi_menu,A_REVERSE);
-            }
-        }
-        else if(key == '\n')
-        {
-            switch(i)
-            {
-                case 0:
-                    machine = state::WIFI_DISPLAY_STATUS;
-                break;
 
-                case 1:
+
+            wattron(wifi_menu,A_REVERSE);
+            mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+            wattroff(wifi_menu,A_REVERSE);
+
+            wrefresh(wifi_menu);
+            wrefresh(wifi_status);
+                
+
+
+
+            key=getch();
+            if(key == KEY_UP )
+            {
+                if(index_ON == 0) index_ON=7;
+                else index_ON--;
+                // if(index_ON==0)
+                // {
+                //     mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+                //     index_ON=7;
+                //     wattron(wifi_menu,A_REVERSE);
+                //     mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+                //     wattroff(wifi_menu,A_REVERSE);
+                // }
+                // else
+                // {
+                //     mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+                //     index_ON--;
+                //     wattron(wifi_menu,A_REVERSE);
+                //     mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+                //     wattroff(wifi_menu,A_REVERSE);
+                // }
+            }
+            else if(key == KEY_DOWN)
+            {
+                if(index_ON == 7) index_ON=0;
+                else index_ON++;
+                // if(index_ON==7)
+                // {
+                //     mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+                //     index_ON=0;
+                //     wattron(wifi_menu,A_REVERSE);
+                //     mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+                //     wattroff(wifi_menu,A_REVERSE);
+                // }
+                // else
+                // {
+                //     mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+                //     index_ON++;
+                //     wattron(wifi_menu,A_REVERSE);
+                //     mvwprintw(wifi_menu, index_ON+1, 1, "%s" ,menu_items[index_ON].c_str());
+                //     wattroff(wifi_menu,A_REVERSE);
+                // }
+            }
+            else if(key == '\n')
+            {
+                switch(index_ON)
+                {
+                    case 0:
+                        machine = state::WIFI_DISPLAY_STATUS;
+                    break;
+
+                    case 1:
+                        cmd_output("nmcli radio wifi on");
+                    break;
+
+                    case 2:
+                        cmd_output("nmcli radio wifi off");
+                    break;
+
+                    case 3:
+                        machine = state::WIFI_CONNECT_TO_A_NETWORK;
+                    break;
+
+                    case 4:
+                        machine = state::WIFI_REMOVE_A_NETWORK;
+                    break;
+
+                    case 7:
+                        machine = state::HOME_PAGE;
+                    break;
+                
+                }
+                if( index_ON !=1 && index_ON !=2) break;            
+            }
+        }
+        else
+        {
+            werase(wifi_status);
+            wborder(wifi_status,0,0,0,0,'+','+','+','+');
+            werase(wifi_menu);
+            wborder(wifi_menu, 0,0,0,0,'+','+',0,0);
+            mvwprintw(wifi_status, 1, 2, "Status:");
+            wattron(wifi_status,COLOR_PAIR(2));
+            mvwprintw(wifi_status, 1, 10, "OFF");
+            wattroff(wifi_status,COLOR_PAIR(2));
+        
+
+            mvwprintw(wifi_menu, 1, 1, "[ Turn WiFi ON ]");
+            mvwprintw(wifi_menu, 2, 1, "[ Back to main menu ]");
+           
+            wattron(wifi_menu, A_REVERSE);
+            mvwprintw(wifi_menu, index_OFF+1, 1, "%s",menu_OFF_items[index_OFF].c_str());
+            wattroff(wifi_menu, A_REVERSE);
+         
+      
+                
+            wrefresh(wifi_home);
+            wrefresh(wifi_menu);
+            wrefresh(wifi_status);
+            
+            key=getch();
+
+            if(key == KEY_UP)
+            {
+                if(index_OFF==1) index_OFF--;
+            }
+            else if(key == KEY_DOWN)
+            {
+                if(index_OFF==0) index_OFF++;
+            }
+            else if(key == '\n')
+            {
+                if(index_OFF == 0)
+                {
                     cmd_output("nmcli radio wifi on");
-                break;
-
-                case 2:
-                    cmd_output("nmcli radio wifi off");
-                break;
-
-                case 3:
-                    machine = state::WIFI_CONNECT_TO_A_NETWORK;
-                break;
-
-                case 4:
-                    machine = state::WIFI_REMOVE_A_NETWORK;
-                break;
-
-                case 7:
+                }
+                else
+                {
                     machine = state::HOME_PAGE;
-                break;
-               
+                    break;
+                }
             }
-            if( i !=1 && i!=2) break;            
+            
         }
 
         wrefresh(wifi_home);
-    
-    wrefresh(wifi_menu);
-    wrefresh(wifi_status);
+        wrefresh(wifi_menu);
+        wrefresh(wifi_status);
     }
     werase(wifi_home);
     werase(wifi_menu);
