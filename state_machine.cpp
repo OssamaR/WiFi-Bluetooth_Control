@@ -38,6 +38,14 @@ void state_machine(void)
         remove_network();
         break;
 
+    case state::WIFI_MODIFY_NETWORK:
+        modify_network();
+        break;
+
+    case state::WIFI_SEARCH_FOR_NETWORK:
+        search_for_network();
+        break;
+
     case state::BLUETOOTH_MAIN:
         bluetooth_main();
         break;
@@ -64,9 +72,13 @@ void home_page(void)
     space_start =0;
  // creates the window
     static WINDOW * controlprogram_win = newwin(h, w, line_start, space_start);
+    wbkgd(controlprogram_win, ' ' | COLOR_PAIR(0));
     static WINDOW * wifi_win = newwin(h, w, line_start+ h-1, space_start);
+    wbkgd(wifi_win, ' ' | COLOR_PAIR(0));
     static WINDOW * bluetooth_win = newwin(h, w, line_start+ 2*h-2, space_start);
+    wbkgd(bluetooth_win, ' ' | COLOR_PAIR(0));
     static WINDOW * exit_win = newwin(h, w, line_start+ 3*h-3, space_start);
+    wbkgd(exit_win, ' ' | COLOR_PAIR(0));
     refresh(); // refreshes the entire screen
 
     // puts a border around the window

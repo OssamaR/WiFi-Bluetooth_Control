@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <memory>
 #include <vector>
+#include <sstream>
 
 #include "shared.hpp"
 
@@ -20,5 +21,8 @@ void wifi_main(void);
 void connect_to_a_network(void);
 void display_wifi_status(void);
 void remove_network(void);
+void modify_network(void);
+void search_for_network(void);
+
 
 #endif

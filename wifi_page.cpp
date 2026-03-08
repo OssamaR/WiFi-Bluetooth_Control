@@ -142,8 +142,11 @@ void wifi_main(void)
     space_start =0;
     int key;
     static WINDOW * wifi_home = newwin(5,   w, line_start, space_start);
+    wbkgd(wifi_home, COLOR_PAIR(0));
     static WINDOW * wifi_status = newwin(3, w, line_start+4, space_start);
+    wbkgd(wifi_status, COLOR_PAIR(0));
     static WINDOW * wifi_menu = newwin(h-6, w, 6, space_start);
+    wbkgd(wifi_menu, COLOR_PAIR(0));
 
     std::vector<std::string> menu_items = {
         "[ Display WiFi Status ]",
@@ -161,6 +164,7 @@ void wifi_main(void)
         "[ Back to main menu ]"
     };
 
+    refresh();
     box(wifi_home, 0, 0);
     wborder(wifi_status,0,0,0,0,'+','+','+','+'); 
     wborder(wifi_menu,0,0,0,0,'+','+',0,0); 
@@ -347,6 +351,14 @@ void wifi_main(void)
                         machine = state::WIFI_REMOVE_A_NETWORK;
                     break;
 
+                    case 5:
+                        machine = state::WIFI_MODIFY_NETWORK;
+                    break;
+
+                    case 6:
+                        machine = state::WIFI_SEARCH_FOR_NETWORK;
+                    break;
+
                     case 7:
                         machine = state::HOME_PAGE;
                     break;
@@ -379,6 +391,7 @@ void wifi_main(void)
             wrefresh(wifi_home);
             wrefresh(wifi_menu);
             wrefresh(wifi_status);
+            refresh();
             
             key=getch();
 
@@ -412,6 +425,7 @@ void wifi_main(void)
     werase(wifi_home);
     werase(wifi_menu);
     werase(wifi_status);
+    
 }
 
 
@@ -424,6 +438,7 @@ void connect_to_a_network(void)
     space_start =0;
     int key;
     static WINDOW * wifi_menu = newwin(h-6, w, 6, space_start);
+    wbkgd(wifi_menu, COLOR_PAIR(0));
 
     wborder(wifi_menu,0,0,0,0,'+','+',0,0); 
 
@@ -435,7 +450,7 @@ void connect_to_a_network(void)
 
     mvwprintw(wifi_menu,1,1,"Network Name: ");
     wrefresh(wifi_menu);
-    
+    refresh();
     echo();
     curs_set(1);
     
@@ -489,6 +504,7 @@ void display_wifi_status(void)
     // static WINDOW * wifi_home = newwin(5,   w, line_start, space_start);
     // static WINDOW * wifi_status = newwin(3, w, line_start+4, space_start);
     static WINDOW * wifi_menu = newwin(h-6, w, 6, space_start);
+    wbkgd(wifi_menu, COLOR_PAIR(0));
 
     // refresh();
     
@@ -528,6 +544,8 @@ void remove_network(void)
     space_start =0;
     int key;
     static WINDOW * wifi_menu = newwin(h-6, w, 6, space_start);
+    wbkgd(wifi_menu, COLOR_PAIR(0));
+
 
     wborder(wifi_menu,0,0,0,0,'+','+',0,0); 
 
@@ -577,4 +595,129 @@ void remove_network(void)
 
     werase(wifi_menu);
         
+}
+
+void modify_network(void)
+{
+    int h=7*4-3, w=80;
+    static WINDOW* wifi_menu = newwin(h-6, w, 6, 0);
+
+    wbkgd(wifi_menu, COLOR_PAIR(0));
+    wborder(wifi_menu,0,0,0,0,'+','+',0,0);
+
+    mvwprintw(wifi_menu, 1, 1, "Network Name that you want to modify: ");
+    wmove(wifi_menu, 2, 1);
+    wrefresh(wifi_menu);
+
+    echo();
+    curs_set(1);
+
+    char ssid_buf[64] = {0};
+    wgetstr(wifi_menu, ssid_buf);
+    std::string ssid(ssid_buf);
+
+    mvwprintw(wifi_menu, 3, 1, "New Password: ");
+    wmove(wifi_menu, 4, 1);
+    wrefresh(wifi_menu);
+
+    char pass_buf[64] = {0};
+    wgetstr(wifi_menu, pass_buf);
+    std::string new_password(pass_buf);
+
+    curs_set(0);
+    noecho();
+
+    // Modify password
+    std::string cmd = "nmcli connection modify \"" + ssid + "\" wifi-sec.psk \"" + new_password + "\" > /dev/null 2>&1";
+    int ret = system(cmd.c_str());
+    refresh();
+
+    // Reconnect to apply
+    if(ret == 0)
+    {
+        std::string cmd2 = "nmcli connection up \"" + ssid + "\" > /dev/null 2>&1";
+        system(cmd2.c_str());
+        refresh();
+
+        wattron(wifi_menu, COLOR_PAIR(1));
+        mvwprintw(wifi_menu, 6, 1, "Network modified successfully!");
+        wattroff(wifi_menu, COLOR_PAIR(1));
+    }
+    else
+    {
+        wattron(wifi_menu, COLOR_PAIR(2));
+        mvwprintw(wifi_menu, 6, 1, "Could not find the Network.");
+        wattroff(wifi_menu, COLOR_PAIR(2));
+    }
+
+    wrefresh(wifi_menu);
+    getch();
+
+    machine = state::WIFI_MAIN;
+    werase(wifi_menu);
+    wrefresh(wifi_menu);
+}
+
+void search_for_network(void)
+{
+    int h=7*4-3, w=80;
+    static WINDOW* wifi_home = newwin(5,   w, 0, 0);
+    static WINDOW* wifi_menu = newwin(h-4, w, 4, 0);
+
+    wbkgd(wifi_menu, COLOR_PAIR(0));
+    box(wifi_home, 0, 0);
+    wborder(wifi_menu,0,0,0,0,'+','+',0,0);
+
+    wattron(wifi_home, A_BOLD);
+    print_centered(wifi_home, 2, w, "Search for a Network");
+    wattroff(wifi_home, A_BOLD);
+
+    wrefresh(wifi_home);
+
+    // Scan and get available networks
+    mvwprintw(wifi_menu, 1, 1, "Scanning...");
+    wrefresh(wifi_menu);
+
+    std::string result = cmd_output("nmcli -t -f SSID,SIGNAL,SECURITY dev wifi list");
+
+    // Display results
+    werase(wifi_menu);
+    wborder(wifi_menu,0,0,0,0,'+','+',0,0);
+
+    if(result.empty())
+    {
+        wattron(wifi_menu, COLOR_PAIR(2));
+        mvwprintw(wifi_menu, 1, 1, "No networks found.");
+        wattroff(wifi_menu, COLOR_PAIR(2));
+    }
+    else
+    {
+        mvwprintw(wifi_menu, 1, 1, "%-30s %-10s %-10s", "SSID", "SIGNAL", "SECURITY");
+        mvwprintw(wifi_menu, 2, 1, "%-50s", "──────────────────────────────────────────────────");
+
+        // Parse and print each line
+        std::istringstream ss(result);
+        std::string line;
+        int row = 3;
+        while(std::getline(ss, line) && row < h-6)
+        {
+            // format is SSID:SIGNAL:SECURITY
+            std::string ssid     = line.substr(0, line.find(':'));
+            line = line.substr(line.find(':')+1);
+            std::string signal   = line.substr(0, line.find(':'));
+            std::string security = line.substr(line.find(':')+1);
+
+            mvwprintw(wifi_menu, row, 1, "%-30s %-10s %-10s",
+                ssid.c_str(), (signal+"%").c_str(), security.c_str());
+            row++;
+        }
+    }
+
+    mvwprintw(wifi_menu, h-8, 1, "Press any key to go back...");
+    wrefresh(wifi_menu);
+    getch();
+
+    machine = state::WIFI_MAIN;
+    werase(wifi_home); wrefresh(wifi_home);
+    werase(wifi_menu); wrefresh(wifi_menu);
 }
