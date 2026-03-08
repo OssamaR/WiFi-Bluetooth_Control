@@ -672,48 +672,60 @@ void search_for_network(void)
     print_centered(wifi_home, 2, w, "Search for a Network");
     wattroff(wifi_home, A_BOLD);
 
-    wrefresh(wifi_home);
+    mvwprintw(wifi_menu, 1, 1, "Network Name to search for: ");
+    wmove(wifi_menu, 2, 1);
 
-    // Scan and get available networks
-    mvwprintw(wifi_menu, 1, 1, "Scanning...");
+    wrefresh(wifi_home);
     wrefresh(wifi_menu);
 
-    std::string result = cmd_output("nmcli -t -f SSID,SIGNAL,SECURITY dev wifi list");
+    echo();
+    curs_set(1);
 
-    // Display results
+    char ssid_buf[64] = {0};
+    wgetstr(wifi_menu, ssid_buf);
+    std::string ssid(ssid_buf);
+
+    curs_set(0);
+    noecho();
+
+    // Search for the specific network
+    std::string cmd = "nmcli -t -f SSID,SIGNAL,SECURITY dev wifi list | grep -i \"" + ssid + "\"";
+    std::string result = cmd_output(cmd.c_str());
+
     werase(wifi_menu);
     wborder(wifi_menu,0,0,0,0,'+','+',0,0);
 
     if(result.empty())
     {
         wattron(wifi_menu, COLOR_PAIR(2));
-        mvwprintw(wifi_menu, 1, 1, "No networks found.");
+        mvwprintw(wifi_menu, 2, 1, "Network \"%s\" not found.", ssid.c_str());
         wattroff(wifi_menu, COLOR_PAIR(2));
     }
     else
     {
         mvwprintw(wifi_menu, 1, 1, "%-30s %-10s %-10s", "SSID", "SIGNAL", "SECURITY");
-        mvwprintw(wifi_menu, 2, 1, "%-50s", "──────────────────────────────────────────────────");
+        // mvwprintw(wifi_menu, 2, 1, "──────────────────────────────────────────────────");
 
-        // Parse and print each line
         std::istringstream ss(result);
         std::string line;
         int row = 3;
         while(std::getline(ss, line) && row < h-6)
         {
-            // format is SSID:SIGNAL:SECURITY
-            std::string ssid     = line.substr(0, line.find(':'));
+            std::string s_ssid    = line.substr(0, line.find(':'));
             line = line.substr(line.find(':')+1);
-            std::string signal   = line.substr(0, line.find(':'));
-            std::string security = line.substr(line.find(':')+1);
+            std::string signal    = line.substr(0, line.find(':'));
+            std::string security  = line.substr(line.find(':')+1);
 
+            wattron(wifi_menu, COLOR_PAIR(1));
             mvwprintw(wifi_menu, row, 1, "%-30s %-10s %-10s",
-                ssid.c_str(), (signal+"%").c_str(), security.c_str());
+                s_ssid.c_str(), (signal+"%").c_str(), security.c_str());
+            wattroff(wifi_menu, COLOR_PAIR(1));
             row++;
         }
     }
 
     mvwprintw(wifi_menu, h-8, 1, "Press any key to go back...");
+    wrefresh(wifi_home);
     wrefresh(wifi_menu);
     getch();
 
