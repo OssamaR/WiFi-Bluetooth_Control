@@ -49,6 +49,15 @@ void state_machine(void)
     case state::BLUETOOTH_MAIN:
         bluetooth_main();
         break;
+
+    case state::BLUETOOTH_DISPLAY_STATUS:
+        display_bluetooth_status();
+        break;
+
+    case state::BLUETOOTH_CONNECT_TO_DEVICE:
+        connect_to_bluetooth();
+        break;
+    
     
     case state::EXIT:
         exit_state();
@@ -270,27 +279,6 @@ void home_page(void)
     werase(wifi_win);
     werase(bluetooth_win);
     werase(exit_win);
-}
-
-void bluetooth_main(void)
-{
-    int h, w, line_start, space_start;
-    h=7*4-3;
-    w=80;
-    line_start =0;
-    space_start =0;
- 
-    static WINDOW * bluetooth_home = newwin(5,   w, line_start, space_start);
-    static WINDOW * bluetooth_menu = newwin(h-4, w, 4, space_start);
-    refresh();
-
-    box(bluetooth_home, 0, 0);
-    wborder(bluetooth_menu,0,0,0,0,'+','+',0,0); 
-
-    wrefresh(bluetooth_home);
-    wrefresh(bluetooth_menu);
-
-    getch();
 }
 
 

@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "wifi_page.hpp"
+#include "bluetooth_page.hpp"
 #include "shared.hpp"
 
 

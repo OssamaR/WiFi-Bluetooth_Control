@@ -1,5 +1,5 @@
-#ifndef __WIFI_PAGE__
-#define __WIFI_PAGE__
+#ifndef __BLUETOOTH_PAGE__
+#define __BLUETOOTH_PAGE__
 
 #include <ncurses.h>
 #include <string.h>
@@ -17,12 +17,9 @@
 
 
 
-void wifi_main(void);
-void connect_to_a_network(void);
-void display_wifi_status(void);
-void remove_network(void);
-void modify_network(void);
-void search_for_network(void);
+void bluetooth_main(void);
+void display_bluetooth_status(void);
+void connect_to_bluetooth(void);
 
 
 #endif
